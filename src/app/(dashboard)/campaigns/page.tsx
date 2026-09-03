@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/layout/page-header";
 import { CampaignCard } from "@/components/campaign/campaign-card";
+import { CreateCampaignDialog } from "@/components/campaign/create-campaign-dialog";
 import { EmptyState } from "@/components/empty-state";
 import { Target } from "lucide-react";
 import { prisma } from "@/lib/db";
@@ -13,10 +14,13 @@ export default async function CampaignsPage() {
 
   return (
     <div className="py-6">
-      <PageHeader
-        title="Campaigns"
-        description="Brand campaigns worth joining — requirements, rewards, and deadlines."
-      />
+      <div className="flex items-start justify-between gap-4">
+        <PageHeader
+          title="Campaigns"
+          description="Brand campaigns worth joining — requirements, rewards, and deadlines."
+        />
+        <CreateCampaignDialog />
+      </div>
       {campaigns.length === 0 ? (
         <EmptyState
           icon={Target}
