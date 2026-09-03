@@ -8,6 +8,8 @@ import { CampaignStatusBadge } from "@/components/campaign/campaign-status-badge
 import { PlatformBadge } from "@/components/platform-badge";
 import { Clock, Gift, ExternalLink } from "lucide-react";
 import { CampaignStatusSelect } from "@/components/campaign/campaign-status-select";
+import { AnalyzeCampaignButton } from "@/components/campaign/analyze-campaign-button";
+import { CampaignAnalysisSchema, type CampaignAnalysis } from "@/lib/ai/schemas";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -31,6 +33,20 @@ export default async function CampaignPage({ params }: Props) {
   const platforms = parseJsonArray(campaign.platforms);
   const hashtags = parseJsonArray(campaign.hashtags);
   const mentions = parseJsonArray(campaign.mentions);
+
+  // Latest campaign analysis (seeded or produced by the Analyze button).
+  let analysis: CampaignAnalysis | null = null;
+  let analysisProvider: string | null = null;
+  if (campaign.analyses[0]) {
+    analysisProvider = campaign.analyses[0].provider;
+    const parsed = CampaignAnalysisSchema.safeParse(
+      JSON.parse(campaign.analyses[0].output ?? "{}")
+    );
+    if (parsed.success) analysis = parsed.data;
+  }
+  const scoreFactors = analysis
+    ? Object.entries(analysis.opportunityScore.breakdown)
+    : [];
 
   return (
     <div className="py-6">
@@ -176,29 +192,51 @@ export default async function CampaignPage({ params }: Props) {
 
         {/* Right column: source material, AI analysis, ideas */}
         <div className="space-y-6">
-          {/* Opportunity score */}
-          {campaign.opportunityScore != null ? (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Opportunity score</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-semibold">{Math.round(campaign.opportunityScore)}/100</div>
-                {campaign.analyses[0] ? (
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    {(() => {
-                      try {
-                        const out = JSON.parse(campaign.analyses[0].output);
-                        return out.summary;
-                      } catch {
-                        return null;
-                      }
-                    })()}
-                  </p>
+          {/* AI analysis */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between text-base">
+                AI analysis
+                {analysisProvider ? (
+                  <span className="text-xs font-normal text-muted-foreground capitalize">{analysisProvider}</span>
                 ) : null}
-              </CardContent>
-            </Card>
-          ) : null}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {analysis ? (
+                <>
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-2xl font-semibold">{Math.round(analysis.opportunityScore.total)}/100</span>
+                    <span className="text-xs text-muted-foreground">opportunity</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{analysis.summary}</p>
+                  {scoreFactors.length > 0 ? (
+                    <dl className="space-y-1 border-t border-border/60 pt-3">
+                      {scoreFactors.map(([key, value]) => (
+                        <div key={key} className="flex items-center justify-between gap-3 text-xs">
+                          <dt className="text-muted-foreground">{key.replace(/([A-Z])/g, " $1").toLowerCase()}</dt>
+                          <dd className="flex w-24 items-center gap-2">
+                            <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
+                              <div
+                                className="h-full rounded-full bg-foreground/70"
+                                style={{ width: `${value}%` }}
+                              />
+                            </div>
+                            <span className="w-6 text-right tabular-nums text-foreground">{Math.round(value)}</span>
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                  ) : null}
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Run the analysis to get a strategy read and opportunity score.
+                </p>
+              )}
+              <AnalyzeCampaignButton campaignId={campaign.id} />
+            </CardContent>
+          </Card>
 
           {/* Ideas for this campaign */}
           <Card>

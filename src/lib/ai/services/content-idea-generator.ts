@@ -29,6 +29,7 @@ export async function generateContentIdeas(
   input: IdeaGenerationInput,
   count: number = DEFAULT_IDEA_COUNT
 ): Promise<GeneratedContentIdeas> {
+  const { platforms = [], hashtags = [], requirements = [] } = input;
   const provider = getAIProvider();
 
   const system = [
@@ -45,17 +46,17 @@ export async function generateContentIdeas(
     input.objective && `Objective: ${input.objective}`,
     input.audience && `Target audience: ${input.audience}`,
     input.format && `Preferred format: ${input.format}`,
-    input.platforms.length > 0 && `Platforms: ${input.platforms.join(", ")}`,
+    platforms.length > 0 && `Platforms: ${platforms.join(", ")}`,
     input.minDurationSec || input.maxDurationSec
       ? `Duration: ${input.minDurationSec ?? "?"}–${input.maxDurationSec ?? "?"} seconds`
       : null,
-    input.hashtags.length > 0 && `Hashtags: ${input.hashtags.join(" ")}`,
+    hashtags.length > 0 && `Hashtags: ${hashtags.join(" ")}`,
     input.requiredCta && `Required CTA: ${input.requiredCta}`,
     input.guidelines && `Guidelines: ${input.guidelines}`,
     input.prohibitedTopics && `Prohibited topics: ${input.prohibitedTopics}`,
     input.sourceMaterial && `Source material: ${input.sourceMaterial}`,
-    input.requirements.length > 0 &&
-      `Campaign requirements (${input.requirements.length}):\n- ${input.requirements.join("\n- ")}`,
+    requirements.length > 0 &&
+      `Campaign requirements (${requirements.length}):\n- ${requirements.join("\n- ")}`,
     `Generate exactly ${count} ideas.`,
   ]
     .filter((x): x is string => Boolean(x))
