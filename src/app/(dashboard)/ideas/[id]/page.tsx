@@ -5,7 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PlatformBadge } from "@/components/platform-badge";
 import { IdeaStatusSelect } from "@/components/ideas/idea-status-select";
+import { GenerateScriptButton } from "@/components/ideas/generate-script-button";
 import { CalendarDays, Target, ArrowLeft } from "lucide-react";
+
+const SCRIPT_LABELS: Record<string, string> = {
+  hook: "Hook",
+  intro: "Intro",
+  body: "Body",
+  payoff: "Payoff",
+  cta: "CTA",
+};
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -58,6 +67,41 @@ export default async function IdeaPage({ params }: Props) {
               </CardContent>
             </Card>
           ) : null}
+
+          {/* Script (generated in production) */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between text-base">
+                Script
+                {idea.scripts[0] ? (
+                  <span className="text-xs font-normal text-muted-foreground">
+                    v{idea.scripts[0].version}
+                  </span>
+                ) : null}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {idea.scripts[0] ? (
+                (["hook", "intro", "body", "payoff", "cta"] as const).map((k) => {
+                  const text = idea.scripts[0]?.[k];
+                  if (!text) return null;
+                  return (
+                    <div key={k}>
+                      <h4 className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        {SCRIPT_LABELS[k]}
+                      </h4>
+                      <p className="text-sm leading-relaxed text-foreground">{text}</p>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No script yet — generate one to start production.
+                </p>
+              )}
+              <GenerateScriptButton ideaId={idea.id} />
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader><CardTitle className="text-base">Overview</CardTitle></CardHeader>
