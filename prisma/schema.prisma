@@ -1,0 +1,294 @@
+// Data model per CLAUDE.md entity list + docs/PRODUCT.md field specs.
+// SQLite constraints: no enums, no Json columns — statuses/types are String,
+// validated app-side in src/lib/constants.ts (Zod unions).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  users           User[]
+  campaigns       Campaign[]
+  ideas           ContentIdea[]
+  plans           ContentPlan[]
+  contents        Content[]
+  videos          Video[]
+  assets          Asset[]
+  tags            Tag[]
+  recommendations AIRecommendation[]
+}
+
+model User {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  name        String
+  email       String    @unique
+  createdAt   DateTime  @default(now())
+}
+
+model Campaign {
+  id             String    @id @default(cuid())
+  workspaceId    String
+  workspace      Workspace @relation(fields: [workspaceId], references: [id])
+  name           String
+  brand          String?
+  creator        String?
+  description    String?
+  objective      String?
+  reward         String?
+  rewardCents    Int?
+  deadline       DateTime?
+  status         String    @default("draft")
+  platforms      String? // JSON array of platform ids
+  format         String?
+  audience       String?
+  minDurationSec Int?
+  maxDurationSec Int?
+  hashtags       String? // JSON array
+  mentions       String? // JSON array
+  requiredCta    String?
+  prohibitedTopics String?
+  guidelines     String?
+  submissionProcedure String?
+  rewardConditions    String?
+  sourceMaterial      String?
+  campaignUrl         String?
+  opportunityScore    Float?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  requirements CampaignRequirement[]
+  analyses     AIAnalysis[]
+  ideas        ContentIdea[]
+
+  @@index([workspaceId, status])
+}
+
+model CampaignRequirement {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  kind       String // must_do | must_include | must_mention | must_avoid | submission | reward_condition
+  text       String
+
+  @@index([campaignId])
+}
+
+model ContentIdea {
+  id          String        @id @default(cuid())
+  workspaceId String
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id])
+  campaignId  String?
+  campaign    Campaign?     @relation(fields: [campaignId], references: [id])
+  title       String
+  hook        String?
+  angle       String?
+  audience    String?
+  format      String?
+  durationSec Int?
+  outline     String?
+  cta         String?
+  platform    String?
+  viralScore  Float?
+  difficulty  String? // easy | medium | hard
+  status      String        @default("idea")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  plans    ContentPlan[]
+  contents Content[]
+  scripts  Script[]
+
+  @@index([workspaceId, status])
+  @@index([campaignId])
+}
+
+model Script {
+  id        String      @id @default(cuid())
+  ideaId    String
+  idea      ContentIdea @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  hook      String?
+  intro     String?
+  body      String?
+  payoff    String?
+  cta       String?
+  version   Int         @default(1)
+  createdAt DateTime    @default(now())
+
+  @@index([ideaId])
+}
+
+model ContentPlan {
+  id                 String      @id @default(cuid())
+  workspaceId        String
+  workspace          Workspace   @relation(fields: [workspaceId], references: [id])
+  ideaId             String
+  idea               ContentIdea @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  platform           String
+  publishAt          DateTime?
+  productionDeadline DateTime?
+  editingDeadline    DateTime?
+  status             String      @default("planned")
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  @@index([workspaceId, publishAt])
+}
+
+model Video {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  title       String
+  sourceUrl   String?
+  durationSec Int?
+  status      String    @default("imported")
+  createdAt   DateTime  @default(now())
+
+  clips Clip[]
+
+  @@index([workspaceId])
+}
+
+model Clip {
+  id         String   @id @default(cuid())
+  videoId    String
+  video      Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  title      String
+  startSec   Float
+  endSec     Float
+  hook       String?
+  reason     String?
+  viralScore Float?
+  status     String   @default("detected")
+  createdAt  DateTime @default(now())
+
+  contents Content[]
+
+  @@index([videoId])
+}
+
+model Content {
+  id          String        @id @default(cuid())
+  workspaceId String
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id])
+  ideaId      String?
+  idea        ContentIdea?  @relation(fields: [ideaId], references: [id])
+  clipId      String?
+  clip        Clip?         @relation(fields: [clipId], references: [id])
+  title       String
+  caption     String?
+  hashtags    String? // JSON array
+  status      String        @default("draft")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  publications Publication[]
+
+  @@index([workspaceId, status])
+}
+
+model Publication {
+  id          String   @id @default(cuid())
+  contentId   String
+  content     Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  platform    String
+  url         String?
+  publishedAt DateTime?
+  status      String   @default("scheduled")
+  createdAt   DateTime @default(now())
+
+  snapshots AnalyticsSnapshot[]
+
+  @@index([contentId])
+  @@index([platform])
+}
+
+model AnalyticsSnapshot {
+  id             String      @id @default(cuid())
+  publicationId  String
+  publication    Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  capturedAt     DateTime    @default(now())
+  views          Int         @default(0)
+  likes          Int         @default(0)
+  comments       Int         @default(0)
+  shares         Int         @default(0)
+  saves          Int         @default(0)
+  followersGained Int        @default(0)
+  watchTimeSec   Int         @default(0)
+  avgWatchSec    Float       @default(0)
+  retention      Float?
+  engagementRate Float?
+  completionRate Float?
+  ctr            Float?
+
+  @@index([publicationId, capturedAt])
+}
+
+model AIAnalysis {
+  id          String    @id @default(cuid())
+  campaignId  String?
+  campaign    Campaign? @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  subjectType String // campaign | idea | clip | analytics
+  subjectId   String
+  kind        String // campaign_analysis | viral_score | analytics_patterns
+  input       String? // JSON
+  output      String // JSON, validated by Zod schema before write
+  provider    String    @default("mock")
+  createdAt   DateTime  @default(now())
+
+  @@index([subjectType, subjectId])
+}
+
+model AIRecommendation {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  kind        String // hook | publishing | format | campaign | performance
+  title       String
+  body        String
+  status      String    @default("new")
+  context     String? // JSON
+  createdAt   DateTime  @default(now())
+
+  @@index([workspaceId, status])
+}
+
+model Asset {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  name        String
+  kind        String // video | clip | thumbnail | script | caption | image | audio | document
+  url         String?
+  sizeBytes   Int?
+  favorite    Boolean   @default(false)
+  folder      String? // ponytail: flat folder name; tree + move UI when needed
+  createdAt   DateTime  @default(now())
+
+  tags Tag[]
+
+  @@index([workspaceId, kind])
+}
+
+model Tag {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  name        String
+  color       String?
+
+  assets Asset[]
+
+  @@unique([workspaceId, name])
+}
