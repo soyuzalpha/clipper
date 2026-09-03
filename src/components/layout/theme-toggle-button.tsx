@@ -4,11 +4,7 @@ import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function ThemeToggleButton() {
   const { resolvedTheme, setTheme } = useTheme();
@@ -21,9 +17,7 @@ export function ThemeToggleButton() {
             variant="ghost"
             size="icon"
             aria-label="Toggle theme"
-            onClick={() =>
-              setTheme(resolvedTheme === "dark" ? "light" : "dark")
-            }
+            onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
           />
         }
       >

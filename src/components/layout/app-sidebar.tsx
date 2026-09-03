@@ -23,11 +23,7 @@ function NavButton({ item }: { item: NavItem }) {
   const isActive = pathname === item.href;
 
   return (
-    <SidebarMenuButton
-      render={<Link href={item.href} />}
-      isActive={isActive}
-      tooltip={item.label}
-    >
+    <SidebarMenuButton render={<Link href={item.href} />} isActive={isActive} tooltip={item.label}>
       <item.icon aria-hidden />
       <span>{item.label}</span>
     </SidebarMenuButton>
@@ -36,7 +32,7 @@ function NavButton({ item }: { item: NavItem }) {
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar variant="inset" collapsible="icon" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -44,15 +40,13 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               <span
                 className={cn(
                   "flex size-7 items-center justify-center rounded-md border border-border bg-sidebar-accent",
-                  "text-[11px] font-bold text-sidebar-accent-foreground"
+                  "text-[11px] font-bold text-sidebar-accent-foreground",
                 )}
                 aria-hidden
               >
                 CO
               </span>
-              <span className="text-sm font-semibold tracking-tight">
-                Clipper OS
-              </span>
+              <span className="text-sm font-semibold tracking-tight uppercase">Clipper</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
