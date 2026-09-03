@@ -9,6 +9,7 @@ import {
   BarChart3,
   Sparkles,
   Settings,
+  BookOpen,
 } from "lucide-react";
 
 export interface NavItem {
@@ -31,4 +32,5 @@ export const mainNav: NavItem[] = [
 
 export const secondaryNav: NavItem[] = [
   { label: "Settings", href: "/settings", icon: Settings },
+  { label: "Guide", href: "/guide", icon: BookOpen },
 ];
