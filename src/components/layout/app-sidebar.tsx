@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
 
 import { mainNav, secondaryNav, type NavItem } from "@/config/nav";
 import { cn } from "@/lib/utils";
@@ -18,7 +16,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-  SidebarSeparator,
 } from "@/components/ui/sidebar";
 
 function NavButton({ item }: { item: NavItem }) {
@@ -33,22 +30,6 @@ function NavButton({ item }: { item: NavItem }) {
     >
       <item.icon aria-hidden />
       <span>{item.label}</span>
-    </SidebarMenuButton>
-  );
-}
-
-function ThemeToggleButton() {
-  const { resolvedTheme, setTheme } = useTheme();
-
-  return (
-    <SidebarMenuButton
-      tooltip="Toggle theme"
-      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-    >
-      {/* Both icons render; CSS picks — no state, no hydration mismatch. */}
-      <Moon className="dark:hidden" aria-hidden />
-      <Sun className="hidden dark:block" aria-hidden />
-      <span>Theme</span>
     </SidebarMenuButton>
   );
 }
@@ -69,7 +50,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               >
                 CO
               </span>
-              <span className="text-sm font-semibold tracking-tight">Clipper OS</span>
+              <span className="text-sm font-semibold tracking-tight">
+                Clipper OS
+              </span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -96,12 +79,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               <NavButton item={item} />
             </SidebarMenuItem>
           ))}
-        </SidebarMenu>
-        <SidebarSeparator className="my-2" />
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <ThemeToggleButton />
-          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
       <SidebarRail />
