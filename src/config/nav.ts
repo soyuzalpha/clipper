@@ -6,10 +6,8 @@ import {
   Clapperboard,
   Scissors,
   FolderOpen,
-  BarChart3,
   Sparkles,
   Settings,
-  BookOpen,
 } from "lucide-react";
 
 export interface NavItem {
@@ -26,11 +24,9 @@ export const mainNav: NavItem[] = [
   { label: "Production", href: "/production", icon: Clapperboard },
   { label: "Clip Maker", href: "/clips", icon: Scissors },
   { label: "Content Library", href: "/library", icon: FolderOpen },
-  { label: "Analytics", href: "/analytics", icon: BarChart3 },
   { label: "AI Assistant", href: "/assistant", icon: Sparkles },
 ];
 
 export const secondaryNav: NavItem[] = [
   { label: "Settings", href: "/settings", icon: Settings },
-  { label: "Guide", href: "/guide", icon: BookOpen },
 ];
