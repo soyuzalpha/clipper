@@ -23,7 +23,13 @@ function NavButton({ item }: { item: NavItem }) {
   const isActive = pathname === item.href;
 
   return (
-    <SidebarMenuButton render={<Link href={item.href} />} isActive={isActive} tooltip={item.label}>
+    <SidebarMenuButton
+      size={"default"}
+      render={<Link href={item.href} />}
+      isActive={isActive}
+      tooltip={item.label}
+      className="p-4"
+    >
       <item.icon aria-hidden />
       <span>{item.label}</span>
     </SidebarMenuButton>
