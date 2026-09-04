@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { requireAuth } from "@/lib/auth";
 
 export type ClipsActionResult =
   | { ok: true; id?: string }
@@ -15,6 +16,9 @@ const createVideoSchema = z.object({
 
 /** Paste a source URL → Video row (status "imported"). */
 export async function createVideo(raw: unknown): Promise<ClipsActionResult> {
+  const unauth = await requireAuth();
+  if (unauth) return unauth;
+
   const parsed = createVideoSchema.safeParse(raw);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
@@ -41,6 +45,9 @@ export async function createVideo(raw: unknown): Promise<ClipsActionResult> {
  * prior clips (idempotent re-run) and flips the video to "ready".
  */
 export async function detectClips(videoId: string): Promise<ClipsActionResult> {
+  const unauth = await requireAuth();
+  if (unauth) return unauth;
+
   const video = await prisma.video.findUnique({ where: { id: videoId } });
   if (!video) {
     return { ok: false, error: "Video not found." };
@@ -108,6 +115,9 @@ export async function setClipStatus(
   clipId: string,
   rawStatus: string
 ): Promise<ClipsActionResult> {
+  const unauth = await requireAuth();
+  if (unauth) return unauth;
+
   if (!(CLIP_STATUS as readonly string[]).includes(rawStatus)) {
     return { ok: false, error: "Invalid clip status." };
   }

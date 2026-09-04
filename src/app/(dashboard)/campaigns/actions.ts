@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { CampaignStatus, Platform } from "@/lib/constants";
+import { requireAuth } from "@/lib/auth";
 
 const createCampaignSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -35,6 +36,9 @@ const createCampaignSchema = z.object({
 export type ActionResult = { ok: true; id?: string } | { ok: false; error: string };
 
 export async function createCampaign(raw: unknown): Promise<ActionResult> {
+  const unauth = await requireAuth();
+  if (unauth) return unauth;
+
   const parsed = createCampaignSchema.safeParse(raw);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
@@ -79,6 +83,9 @@ export async function updateCampaignStatus(
   campaignId: string,
   rawStatus: string
 ): Promise<ActionResult> {
+  const unauth = await requireAuth();
+  if (unauth) return unauth;
+
   const parsed = CampaignStatus.safeParse(rawStatus);
   if (!parsed.success) {
     return { ok: false, error: "Invalid status" };

@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-import { mainNav, secondaryNav, type NavItem } from "@/config/nav";
 import { cn } from "@/lib/utils";
 import {
   Sidebar,
@@ -17,6 +15,8 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { mainNav, type NavItem } from "@/config/nav";
+import { NavUser } from "./nav-user";
 
 function NavButton({ item }: { item: NavItem }) {
   const pathname = usePathname();
@@ -36,9 +36,13 @@ function NavButton({ item }: { item: NavItem }) {
   );
 }
 
-export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
+type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
+  user: { name?: string | null; email?: string | null };
+};
+
+export function AppSidebar({ user, ...props }: AppSidebarProps) {
   return (
-    <Sidebar variant="inset" collapsible="icon" {...props}>
+    <Sidebar collapsible="icon" {...props} variant="inset">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -73,13 +77,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
 
       <SidebarFooter>
-        <SidebarMenu>
-          {secondaryNav.map((item) => (
-            <SidebarMenuItem key={item.href}>
-              <NavButton item={item} />
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

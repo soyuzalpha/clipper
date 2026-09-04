@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/db";
+import { requireAuth } from "@/lib/auth";
 
 export type AssistantActionResult =
   | { ok: true; reply: string }
@@ -17,6 +18,9 @@ export async function askAssistant(
   prompt: string,
   context?: string
 ): Promise<AssistantActionResult> {
+  const unauth = await requireAuth();
+  if (unauth) return unauth;
+
   const clean = prompt.trim();
   if (!clean) {
     return { ok: false, error: "Ask me something first." };

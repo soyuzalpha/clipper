@@ -4,12 +4,16 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { IdeaStatus } from "@/lib/constants";
 import { generateScript } from "@/lib/ai/services/script-generator";
+import { requireAuth } from "@/lib/auth";
 
 export type IdeaActionResult =
   | { ok: true; version?: number }
   | { ok: false; error: string };
 
 export async function generateScriptForIdea(ideaId: string): Promise<IdeaActionResult> {
+  const unauth = await requireAuth();
+  if (unauth) return unauth;
+
   const idea = await prisma.contentIdea.findUnique({
     where: { id: ideaId },
     include: { campaign: true },
@@ -69,6 +73,9 @@ export async function updateIdeaStatus(
   ideaId: string,
   rawStatus: string
 ): Promise<IdeaActionResult> {
+  const unauth = await requireAuth();
+  if (unauth) return unauth;
+
   const parsed = IdeaStatus.safeParse(rawStatus);
   if (!parsed.success) {
     return { ok: false, error: "Invalid status" };

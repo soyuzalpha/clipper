@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
+import { requireAuth } from "@/lib/auth";
 import { parseJsonArray } from "@/lib/parse";
 import { analyzeCampaign } from "@/lib/ai/services/campaign-analyzer";
 import { getAIProvider } from "@/lib/ai/provider";
@@ -16,6 +17,9 @@ export type CampaignActionResult =
  * list/overview ranking reflects the analysis.
  */
 export async function analyzeCampaignAction(campaignId: string): Promise<CampaignActionResult> {
+  const unauth = await requireAuth();
+  if (unauth) return unauth;
+
   const campaign = await prisma.campaign.findUnique({
     where: { id: campaignId },
     include: { requirements: { select: { kind: true, text: true } } },

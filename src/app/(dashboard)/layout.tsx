@@ -6,12 +6,15 @@ import { ThemeToggleButton } from "@/components/layout/theme-toggle-button";
 import { Button } from "@/components/ui/button";
 import { BookOpen } from "lucide-react";
 import Link from "next/link";
+import { auth } from "@/lib/auth";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth();
+
   return (
     <TooltipProvider>
       <SidebarProvider className="h-svh">
-        <AppSidebar />
+        <AppSidebar user={session?.user ?? {}} />
         <SidebarInset>
           <header className="flex h-12 shrink-0 items-center justify-between gap-2 border-b border-border px-4">
             <div className="flex items-center gap-2">

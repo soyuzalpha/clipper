@@ -1,8 +1,16 @@
+import bcrypt from "bcryptjs";
+import { mkdirSync } from "node:fs";
+import { dirname } from "node:path";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 
+const dbUrl = process.env.DATABASE_URL ?? "file:./data/content.db";
+if (dbUrl.startsWith("file:")) {
+  mkdirSync(dirname(dbUrl.slice("file:".length)), { recursive: true });
+}
+
 const prisma = new PrismaClient({
-  adapter: new PrismaLibSql({ url: process.env.DATABASE_URL ?? "file:./dev.db" }),
+  adapter: new PrismaLibSql({ url: dbUrl }),
 });
 
 async function main() {
@@ -26,14 +34,20 @@ async function main() {
   await prisma.user.deleteMany();
   await prisma.workspace.deleteMany();
 
+  const adminEmail = process.env.ADMIN_EMAIL ?? "admin@clipper.os";
+  const adminPassword = process.env.ADMIN_PASSWORD ?? "clipper";
+  const passwordHash = bcrypt.hashSync(adminPassword, 10);
+
   const ws = await prisma.workspace.create({ data: { name: "Default Workspace" } });
   await prisma.user.create({
     data: {
       workspaceId: ws.id,
-      name: "Creator",
-      email: "creator@clipper.os",
+      name: "Admin",
+      email: adminEmail,
+      passwordHash,
     },
   });
+  console.log(`Created admin user: ${adminEmail}`);
 
   // Tags
   const tagNames = [

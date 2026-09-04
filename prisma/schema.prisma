@@ -28,12 +28,13 @@ model Workspace {
 }
 
 model User {
-  id          String    @id @default(cuid())
-  workspaceId String
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
-  name        String
-  email       String    @unique
-  createdAt   DateTime  @default(now())
+  id            String    @id @default(cuid())
+  workspaceId   String
+  workspace     Workspace @relation(fields: [workspaceId], references: [id])
+  name          String
+  email         String    @unique
+  passwordHash  String    // bcrypt hash, set on first seed
+  createdAt     DateTime  @default(now())
 }
 
 model Campaign {

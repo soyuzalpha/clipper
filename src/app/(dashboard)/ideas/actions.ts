@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { generateContentIdeas } from "@/lib/ai/services/content-idea-generator";
+import { requireAuth } from "@/lib/auth";
 
 export type IdeasActionResult = { ok: true; created: number } | { ok: false; error: string };
 
@@ -11,6 +12,9 @@ export type IdeasActionResult = { ok: true; created: number } | { ok: false; err
  * and persist them. Workspace resolved from the campaign to stay scoped.
  */
 export async function generateIdeasForCampaign(campaignId: string): Promise<IdeasActionResult> {
+  const unauth = await requireAuth();
+  if (unauth) return unauth;
+
   const campaign = await prisma.campaign.findUnique({
     where: { id: campaignId },
     include: { requirements: { select: { kind: true, text: true } } },

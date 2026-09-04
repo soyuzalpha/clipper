@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { Platform } from "@/lib/constants";
+import { requireAuth } from "@/lib/auth";
 
 const createPlanSchema = z.object({
   ideaId: z.string().min(1, "Idea is required"),
@@ -19,6 +20,9 @@ export type PlanActionResult =
   | { ok: false; error: string };
 
 export async function createPlan(raw: unknown): Promise<PlanActionResult> {
+  const unauth = await requireAuth();
+  if (unauth) return unauth;
+
   const parsed = createPlanSchema.safeParse(raw);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
