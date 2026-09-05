@@ -47,7 +47,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" render={<Link href="/" />}>
-              <Image src={"/logo.png"} width={40} height={40} alt="logo" />
+              <img src={"/logo.png"} width={40} height={40} alt="logo" />
               <span className="text-sm font-semibold tracking-tight uppercase">Clipper</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
