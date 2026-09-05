@@ -1,6 +1,6 @@
 import { PageHeader } from "@/components/layout/page-header";
 import { CampaignCard } from "@/components/campaign/campaign-card";
-import { CreateCampaignDialog } from "@/components/campaign/create-campaign-dialog";
+import { CreateCampaignSheet } from "@/components/campaign/create-campaign-sheet";
 import { EmptyState } from "@/components/empty-state";
 import { Target } from "lucide-react";
 import { prisma } from "@/lib/db";
@@ -19,7 +19,7 @@ export default async function CampaignsPage() {
           title="Campaigns"
           description="Brand campaigns worth joining — requirements, rewards, and deadlines."
         />
-        <CreateCampaignDialog />
+        <CreateCampaignSheet />
       </div>
       {campaigns.length === 0 ? (
         <EmptyState
