@@ -289,12 +289,15 @@ model Asset {
   workspaceId String
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
   name        String
-  kind        String // video | clip | thumbnail | script | caption | image | audio | document
-  url         String?
+  kind        String // file category: video | image | audio | document (legacy rows tolerated)
+  mimeType    String? // set on upload/import
+  storageKey  String? // storage ref, e.g. originals/2026/09/abc123.mp4 — never an fs path
+  url         String? // original/source URL (Import URL); null for uploads
   sizeBytes   Int?
   favorite    Boolean   @default(false)
   folder      String? // ponytail: flat folder name; tree + move UI when needed
   createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   tags Tag[]
 
