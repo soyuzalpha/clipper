@@ -101,3 +101,15 @@ export const AnalyticsPatternsSchema = z.object({
   nextOpportunities: z.array(z.string()),
 });
 export type GeneratedAnalyticsPatterns = z.infer<typeof AnalyticsPatternsSchema>;
+
+// ─── Assistant ─────────────────────────────────────────────────────────────────
+
+/**
+ * Open-ended assistant chat reply. Free-form text is wrapped in a single
+ * structured field so the reply rides the same schema-validated router path as
+ * every other AI call.
+ */
+export const AssistantReplySchema = z.object({
+  reply: z.string(),
+});
+export type AssistantReply = z.infer<typeof AssistantReplySchema>;

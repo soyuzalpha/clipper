@@ -2,7 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { analyzeCampaign } from "@/lib/ai/services/campaign-analyzer";
 import { generateContentIdeas } from "@/lib/ai/services/content-idea-generator";
-import { CampaignAnalysisSchema, ContentIdeasSchema } from "@/lib/ai/schemas";
+import { askAIAssistant } from "@/lib/ai/services/assistant";
+import { CampaignAnalysisSchema, ContentIdeasSchema, AssistantReplySchema } from "@/lib/ai/schemas";
 import type { AIProvider, AIResponse, GenerateOptions } from "@/lib/ai/provider";
 import { AIError } from "@/lib/ai/errors";
 
@@ -100,6 +101,22 @@ test("generateContentIdeas returns schema-valid ideas and forwards the count con
   assert.ok(call);
   assert.equal(call.schemaName, "ContentIdeas");
   assert.ok(call.prompt.includes("Test Campaign"));
+});
+
+test("askAIAssistant returns schema-valid reply grounded in the workspace context", async () => {
+  const provider = new StubProvider({ AssistantReply: { reply: "Open 3 campaigns." } });
+  const result = await askAIAssistant(
+    { question: "How many campaigns are open?", workspaceContext: "Open campaigns: 3" },
+    { provider, skipLog: true }
+  );
+  assert.equal(AssistantReplySchema.safeParse(result).success, true);
+  assert.equal(result.reply, "Open 3 campaigns.");
+  assert.equal(provider.calls.length, 1);
+  const [call] = provider.calls;
+  assert.ok(call);
+  assert.equal(call.schemaName, "AssistantReply");
+  assert.ok(call.prompt.includes("How many campaigns are open?"));
+  assert.ok(call.prompt.includes("Open campaigns: 3"));
 });
 
 test("service rethrows provider AIError kinds unchanged (no swallowing)", async () => {

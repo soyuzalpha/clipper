@@ -2,17 +2,21 @@
 
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
+import { getAIConfigStatus } from "@/lib/ai/config";
+import { askAIAssistant } from "@/lib/ai/services/assistant";
+import { AIError } from "@/lib/ai/errors";
 
 export type AssistantActionResult =
-  | { ok: true; reply: string }
+  | { ok: true; reply: string; provider: "hemattoken" | "mock" }
   | { ok: false; error: string };
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * Mock assistant. No LLM — a deterministic rule-based reply built from the
- * prompt plus a couple of light workspace counts, so the chat feels wired to
- * real data without any provider. Swap for a real AI call when one lands.
+ * Answer one assistant question. When the AI gateway is configured the question
+ * is answered by a real model grounded in the workspace context below;
+ * otherwise a deterministic rule-based reply keeps the chat useful with zero
+ * keys (the app's established fallback).
  */
 export async function askAssistant(
   prompt: string,
@@ -41,6 +45,36 @@ export async function askAssistant(
     prisma.clip.count({ where: { video: { workspaceId: workspace.id } } }),
   ]);
 
+  if (getAIConfigStatus().gatewayConfigured) {
+    const workspaceContext = [
+      `Workspace: ${workspace.name}`,
+      `Open campaigns: ${openCampaigns}`,
+      topCampaign
+        ? `Top campaign: "${topCampaign.name}" (opportunity score ${topCampaign.opportunityScore ?? "n/a"})`
+        : null,
+      `Content ideas: ${ideas}`,
+      `Content plans: ${plans}`,
+      `Detected clips: ${clips}`,
+      context ? `Current page: ${context}` : null,
+    ]
+      .filter((x): x is string => Boolean(x))
+      .join("\n");
+
+    try {
+      const { reply } = await askAIAssistant({
+        question: clean,
+        workspaceContext,
+      });
+      return { ok: true, reply, provider: "hemattoken" };
+    } catch (error) {
+      return {
+        ok: false,
+        error:
+          error instanceof AIError ? error.safeMessage : "The assistant failed unexpectedly.",
+      };
+    }
+  }
+
   await delay(600);
 
   let reply: string;
@@ -62,8 +96,8 @@ export async function askAssistant(
   } else if (context && q.includes("page")) {
     reply = `Looking at ${context}. Everything on this page is live from your workspace data.`;
   } else {
-    reply = `I can help you steer ${workspace.name}: try asking about your campaigns, content ideas, clips, analytics, or planning. (Mock assistant — wire a real provider for open-ended answers.)`;
+    reply = `I can help you steer ${workspace.name}: try asking about your campaigns, content ideas, clips, analytics, or planning.`;
   }
 
-  return { ok: true, reply };
+  return { ok: true, reply, provider: "mock" };
 }

@@ -28,6 +28,7 @@ export default function AssistantPage() {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<"hemattoken" | "mock" | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -48,6 +49,7 @@ export default function AssistantPage() {
       setError(result.error);
       return;
     }
+    setMode(result.provider);
     setMessages((prev) => [...prev, { role: "assistant", content: result.reply }]);
   };
 
@@ -55,7 +57,7 @@ export default function AssistantPage() {
     <div className="flex h-full flex-col py-6">
       <PageHeader
         title="AI Assistant"
-        description="Context-aware help — mock replies drawn from your workspace data."
+        description="Context-aware help grounded in your workspace data."
       />
 
       <Card className="flex min-h-0 flex-1 flex-col">
@@ -128,7 +130,11 @@ export default function AssistantPage() {
       </form>
       <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
         <Sparkles className="size-3" aria-hidden />
-        Mock assistant — no API keys needed. Replies are rule-based from your data.
+        {mode === "mock"
+          ? "Mock assistant — no API keys needed. Replies are rule-based from your data."
+          : mode === "hemattoken"
+            ? "Live — answered by your AI gateway from workspace data."
+            : "Answers are drawn from your workspace data."}
       </p>
     </div>
   );
