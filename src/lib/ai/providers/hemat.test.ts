@@ -78,6 +78,32 @@ test("HematTokenProvider: returns schema-validated data + usage on a healthy gat
   }
 });
 
+test("HematTokenProvider: reasoning preamble before the JSON is tolerated (gateway behavior)", async () => {
+  // The HematToken upstream model prefixes answers with prose then emits the
+  // JSON object. generateObject choked on this; the extractor must recover it.
+  const gw = await startGateway((_req, res) =>
+    json(
+      res,
+      200,
+      okCompletion(
+        'The user asks to say hello in Vietnamese. The reply should be "Xin chào".' +
+          JSON.stringify({ summary: "hi", score: 5 })
+      )
+    )
+  );
+  try {
+    const result = await provider(gw.baseURL).generate({
+      schema: ProbeSchema,
+      schemaName: "Probe",
+      system: "sys",
+      prompt: "probe",
+    });
+    assert.deepEqual(result.data, { summary: "hi", score: 5 });
+  } finally {
+    await gw.close();
+  }
+});
+
 test("HematTokenProvider: missing gateway settings throws controlled config error", async () => {
   const p = new HematTokenProvider({}); // overrides given but empty
   await assert.rejects(
