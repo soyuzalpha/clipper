@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
 import {
   Sidebar,
   SidebarContent,
@@ -17,6 +16,7 @@ import {
 } from "@/components/ui/sidebar";
 import { mainNav, type NavItem } from "@/config/nav";
 import { NavUser } from "./nav-user";
+import Image from "next/image";
 
 function NavButton({ item }: { item: NavItem }) {
   const pathname = usePathname();
@@ -47,15 +47,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" render={<Link href="/" />}>
-              <span
-                className={cn(
-                  "flex size-7 items-center justify-center rounded-md border border-border bg-sidebar-accent",
-                  "text-[11px] font-bold text-sidebar-accent-foreground",
-                )}
-                aria-hidden
-              >
-                CO
-              </span>
+              <img src={"/logo.png"} alt="logo" />
               <span className="text-sm font-semibold tracking-tight uppercase">Clipper</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
