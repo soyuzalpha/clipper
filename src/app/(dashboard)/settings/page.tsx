@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AIConnectionTest } from "@/components/settings/ai-connection-test";
 import { getAIProvider } from "@/lib/ai/provider";
 import { getAIConfigStatus } from "@/lib/ai/config";
 
@@ -97,6 +98,12 @@ export default async function SettingsPage() {
                 </span>
               </div>
             ) : null}
+            <div className="grid gap-1.5">
+              <span className="text-xs text-muted-foreground">
+                Live check
+              </span>
+              <AIConnectionTest />
+            </div>
             <p className="text-xs text-muted-foreground">
               Select the layer with the{" "}
               <code className="text-xs">AI_PROVIDER</code> env var
