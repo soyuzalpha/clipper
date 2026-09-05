@@ -1,9 +1,15 @@
-import { getAIProvider } from "../provider";
+import { runAITask, type RunAITaskDeps } from "../router";
 import { ContentIdeasSchema, type GeneratedContentIdeas } from "../schemas";
+import { buildContentIdeasPrompt } from "../prompts/content-ideas";
+import type {
+  PriorAnalysisSummary,
+  CreatorPerformance,
+} from "../context";
 
 export const DEFAULT_IDEA_COUNT = 5;
 
-/** Everything the generator needs to know about the campaign. */
+/** Campaign context the generator needs, plus optional prior analysis and
+ * creator performance to ground ideas in evidence rather than templates. */
 export interface IdeaGenerationInput {
   name: string;
   brand?: string | null;
@@ -18,54 +24,33 @@ export interface IdeaGenerationInput {
   sourceMaterial?: string | null;
   platforms: string[];
   hashtags: string[];
-  requirements: string[];
+  mentions?: string[];
+  requirements: { kind: string; text: string }[];
+  /** Structured analysis of this campaign, if one has already been persisted. */
+  analysis?: PriorAnalysisSummary | null;
+  /** Learned creator preferences (winning hooks, durations, topics...). */
+  creatorPerformance?: CreatorPerformance;
 }
 
 /**
- * Campaign → content ideas. Provider-agnostic: resolves the active provider
- * (mock by default) and validates structured output against ContentIdeasSchema.
+ * Campaign → content ideas. Routes through the AI Router and validates
+ * structured output against ContentIdeasSchema before persisting.
  */
 export async function generateContentIdeas(
   input: IdeaGenerationInput,
-  count: number = DEFAULT_IDEA_COUNT
+  count: number = DEFAULT_IDEA_COUNT,
+  deps: RunAITaskDeps = {}
 ): Promise<GeneratedContentIdeas> {
-  const { platforms = [], hashtags = [], requirements = [] } = input;
-  const provider = getAIProvider();
+  const { system, prompt } = buildContentIdeasPrompt(input, count);
 
-  const system = [
-    "You are a senior short-form content strategist for clipper creators.",
-    "Generate distinct, high-viral-potential content ideas for the given brand campaign.",
-    "Each idea needs a punchy title, a hook written to stop the scroll in the first second, a clear angle, a specific target audience, a content structure, a platform, an estimated duration, a call to action, a viral-score estimate, and a difficulty rating.",
-    "Ideas must be mutually distinct angles on the campaign, not variations of one idea.",
-    "Respect the campaign's platforms and requirements. Do not invent prohibited topics.",
-  ].join(" ");
-
-  const parts = [
-    `Campaign: ${input.name}`,
-    input.brand && `Brand: ${input.brand}`,
-    input.objective && `Objective: ${input.objective}`,
-    input.audience && `Target audience: ${input.audience}`,
-    input.format && `Preferred format: ${input.format}`,
-    platforms.length > 0 && `Platforms: ${platforms.join(", ")}`,
-    input.minDurationSec || input.maxDurationSec
-      ? `Duration: ${input.minDurationSec ?? "?"}–${input.maxDurationSec ?? "?"} seconds`
-      : null,
-    hashtags.length > 0 && `Hashtags: ${hashtags.join(" ")}`,
-    input.requiredCta && `Required CTA: ${input.requiredCta}`,
-    input.guidelines && `Guidelines: ${input.guidelines}`,
-    input.prohibitedTopics && `Prohibited topics: ${input.prohibitedTopics}`,
-    input.sourceMaterial && `Source material: ${input.sourceMaterial}`,
-    requirements.length > 0 &&
-      `Campaign requirements (${requirements.length}):\n- ${requirements.join("\n- ")}`,
-    `Generate exactly ${count} ideas.`,
-  ]
-    .filter((x): x is string => Boolean(x))
-    .join("\n");
-
-  return provider.generate<GeneratedContentIdeas>({
-    schema: ContentIdeasSchema,
-    schemaName: "ContentIdeas",
-    system,
-    prompt: parts,
-  });
+  return runAITask<GeneratedContentIdeas>(
+    "content_ideas",
+    {
+      schema: ContentIdeasSchema,
+      schemaName: "ContentIdeas",
+      system,
+      prompt,
+    },
+    deps
+  );
 }

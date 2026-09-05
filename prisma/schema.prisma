@@ -251,6 +251,25 @@ model AIAnalysis {
   @@index([subjectType, subjectId])
 }
 
+// Every AI gateway call, one row — observability for cost/health. No prompts,
+// no raw responses, no credentials are stored here.
+model AIRequestLog {
+  id           String    @id @default(cuid())
+  task         String // campaign_analysis | content_ideas | ...
+  provider     String    @default("mock")
+  model        String? // gateway model id / combo
+  success      Boolean
+  errorKind    String? // controlled AIError kind when failed
+  durationMs   Int?
+  inputTokens  Int?
+  outputTokens Int?
+  totalTokens  Int?
+  createdAt    DateTime  @default(now())
+
+  @@index([createdAt])
+  @@index([task, createdAt])
+}
+
 model AIRecommendation {
   id          String    @id @default(cuid())
   workspaceId String

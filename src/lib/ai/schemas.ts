@@ -1,51 +1,41 @@
 import { z } from "zod";
-import { Platform, Difficulty, RequirementKind } from "@/lib/constants";
+import { Platform, Difficulty } from "@/lib/constants";
 
 // ─── Campaign Analysis ───────────────────────────────────────────────────────
 
+/**
+ * AI contract for a campaign read. Flat and list-shaped so the model answers
+ * exactly the questions the product surfaces — no invented nesting.
+ */
 export const CampaignAnalysisSchema = z.object({
   summary: z.string(),
-  requirements: z.array(
-    z.object({
-      kind: RequirementKind,
-      text: z.string(),
-    })
-  ),
+  /** Must-do / must-include constraints the brand set, as plain strings. */
+  requirements: z.array(z.string()),
+  /** Hard limits (topics, claims, format bans) the content must respect. */
+  restrictions: z.array(z.string()),
   risks: z.array(z.string()),
-  strategy: z.object({
-    angle: z.string(),
-    audience: z.string(),
-    tone: z.string(),
-    hookDirection: z.string(),
-    durationSec: z.number().int().positive(),
-    cta: z.string(),
-    structure: z.string(),
-  }),
-  opportunityScore: z.object({
-    total: z.number().min(0).max(100),
-    breakdown: z.object({
-      reward: z.number().min(0).max(100),
-      deadline: z.number().min(0).max(100),
-      competition: z.number().min(0).max(100),
-      contentAvailability: z.number().min(0).max(100),
-      difficulty: z.number().min(0).max(100),
-      viralPotential: z.number().min(0).max(100),
-      creatorFit: z.number().min(0).max(100),
-    }),
-  }),
+  targetAudience: z.array(z.string()),
+  contentAngles: z.array(z.string()),
+  strategy: z.array(z.string()),
+  opportunityScore: z.number().min(0).max(100),
 });
 export type CampaignAnalysis = z.infer<typeof CampaignAnalysisSchema>;
 
 // ─── Content Ideas ───────────────────────────────────────────────────────────
 
+/**
+ * One content idea. `duration` is seconds; `structure` is an ordered list of
+ * beats (persisted as an outline). `platform` is retained beyond the spec list
+ * because each idea is produced for a specific target platform.
+ */
 export const ContentIdeaSchema = z.object({
   title: z.string(),
   hook: z.string(),
   angle: z.string(),
   audience: z.string(),
   format: z.string(),
-  durationSec: z.number().int().positive(),
-  outline: z.string(),
+  duration: z.number().int().positive(),
+  structure: z.array(z.string()).min(1),
   cta: z.string(),
   platform: Platform,
   viralScore: z.number().min(0).max(100),

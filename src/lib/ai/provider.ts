@@ -1,16 +1,30 @@
 import type { z } from "zod";
 import { MockAIProvider } from "./providers/mock";
-import { OpenAIProvider } from "./providers/openai";
-import { AnthropicProvider } from "./providers/anthropic";
+import { HematTokenProvider } from "./providers/hemat";
+import type { AIProviderId } from "./config";
 
 /**
- * Provider-agnostic AI interface. The app depends on this, never on a vendor SDK.
- * Structured output only — every call validates against a Zod schema.
+ * Provider-agnostic AI interface. The app depends on this, never on a gateway
+ * or vendor SDK. Structured output only — every call validates against a Zod
+ * schema.
  */
+export interface AIUsage {
+  inputTokens?: number;
+  outputTokens?: number;
+  totalTokens?: number;
+}
+
+export interface AIResponse<T> {
+  /** Schema-validated structured output. */
+  data: T;
+  /** Token usage when the gateway reports it — never invented otherwise. */
+  usage?: AIUsage;
+}
+
 export interface AIProvider {
   readonly name: string;
   /** Generate a structured response validated against `schema`. */
-  generate<T>(options: GenerateOptions<T>): Promise<T>;
+  generate<T>(options: GenerateOptions<T>): Promise<AIResponse<T>>;
 }
 
 export interface GenerateOptions<T> {
@@ -20,21 +34,24 @@ export interface GenerateOptions<T> {
   schemaName?: string;
   system?: string;
   prompt: string;
+  /**
+   * Optional model override. Set by the AI Router when a task maps to a
+   * specific tier; providers fall back to their configured default.
+   */
+  model?: string;
 }
 
-export type ProviderId = "mock" | "openai" | "anthropic";
+export type ProviderId = AIProviderId;
 
 /**
- * Resolve the active provider from env. Mock works with zero keys,
- * so it's the safe default — the app must always function without AI credentials.
+ * Resolve the active provider from AI_PROVIDER. Mock works with zero keys,
+ * so it's the safe default — the app must always function without credentials.
  */
 export function getAIProvider(): AIProvider {
-  const id = (process.env.AI_PROVIDER ?? "mock") as ProviderId;
+  const id = (process.env.AI_PROVIDER ?? "mock") as AIProviderId;
   switch (id) {
-    case "openai":
-      return new OpenAIProvider();
-    case "anthropic":
-      return new AnthropicProvider();
+    case "hemattoken":
+      return new HematTokenProvider();
     default:
       return new MockAIProvider();
   }

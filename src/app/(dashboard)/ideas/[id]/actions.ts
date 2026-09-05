@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { IdeaStatus } from "@/lib/constants";
 import { generateScript } from "@/lib/ai/services/script-generator";
+import { AIError } from "@/lib/ai/errors";
 import { requireAuth } from "@/lib/auth";
 
 export type IdeaActionResult =
@@ -22,19 +23,27 @@ export async function generateScriptForIdea(ideaId: string): Promise<IdeaActionR
     return { ok: false, error: "Idea not found." };
   }
 
-  const script = await generateScript({
-    ideaTitle: idea.title,
-    hook: idea.hook,
-    angle: idea.angle,
-    audience: idea.audience,
-    format: idea.format,
-    durationSec: idea.durationSec,
-    outline: idea.outline,
-    cta: idea.cta,
-    platform: idea.platform,
-    campaignName: idea.campaign?.name,
-    campaignGuidelines: idea.campaign?.guidelines,
-  });
+  let script: Awaited<ReturnType<typeof generateScript>>;
+  try {
+    script = await generateScript({
+      ideaTitle: idea.title,
+      hook: idea.hook,
+      angle: idea.angle,
+      audience: idea.audience,
+      format: idea.format,
+      durationSec: idea.durationSec,
+      outline: idea.outline,
+      cta: idea.cta,
+      platform: idea.platform,
+      campaignName: idea.campaign?.name,
+      campaignGuidelines: idea.campaign?.guidelines,
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof AIError ? error.safeMessage : "Script generation failed unexpectedly.",
+    };
+  }
 
   const latest = await prisma.script.findFirst({
     where: { ideaId: idea.id },

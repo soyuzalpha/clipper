@@ -22,6 +22,8 @@ Output:
 - requirements
 - restrictions
 - risks
+- target audience
+- content angles
 - strategy
 - opportunity score
 
@@ -44,9 +46,10 @@ Output:
 - angle
 - audience
 - format
-- duration
-- structure
+- duration (seconds)
+- structure (beat-by-beat timeline)
 - CTA
+- platform
 - viral score
 - difficulty
 
@@ -144,6 +147,12 @@ All AI-generated entities should be validated before entering application state.
 Use Zod schemas where appropriate.
 
 ---
+
+# Provider Model
+
+The active provider is chosen by the `AI_PROVIDER` env var — `mock` (default) or `hemattoken`. Production AI calls go through the HematToken gateway; the app never connects to Anthropic/OpenAI/Gemini directly.
+
+The app depends on the AIProvider abstraction, never on a specific vendor SDK. Provider selection, configuration, the AI Router task model, error mapping, request logging, and security boundaries are recorded in docs/AI_INTEGRATION.md.
 
 # Mock Provider
 

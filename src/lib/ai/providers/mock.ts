@@ -1,4 +1,4 @@
-import type { GenerateOptions, AIProvider } from "../provider";
+import type { GenerateOptions, AIProvider, AIResponse } from "../provider";
 import type {
   GeneratedContentIdeas,
   GeneratedScript,
@@ -16,12 +16,12 @@ import { mockCampaignAnalysis } from "./mock-data";
 export class MockAIProvider implements AIProvider {
   readonly name = "mock";
 
-  async generate<T>(options: GenerateOptions<T>): Promise<T> {
+  async generate<T>(options: GenerateOptions<T>): Promise<AIResponse<T>> {
     const { schemaName } = options;
     const data = this.mockFor(schemaName);
     // z.infer already validated the shape at build time; we trust the mock
     // data matches the schema. A runtime parse would be safer but adds overhead.
-    return data as unknown as T;
+    return { data: data as unknown as T };
   }
 
   private mockFor(schemaName?: string): unknown {
@@ -54,8 +54,13 @@ const mockContentIdeas: GeneratedContentIdeas = {
       angle: "Competitive advantage through contrarian positioning",
       audience: "TikTok creators 18-30, intermediate level",
       format: "Hook → Problem → Solution → CTA",
-      durationSec: 45,
-      outline: "1) Tease the secret 0-5s, 2) Show the problem 5-15s, 3) Reveal the formula 15-35s, 4) CTA 35-45s",
+      duration: 45,
+      structure: [
+        "Tease the secret (0-5s)",
+        "Show the problem (5-15s)",
+        "Reveal the formula (15-35s)",
+        "CTA (35-45s)",
+      ],
       cta: "Save this video — it's your shortcut to viral hooks.",
       platform: "tiktok",
       viralScore: 87,
@@ -67,8 +72,13 @@ const mockContentIdeas: GeneratedContentIdeas = {
       angle: "Science-backed content strategy",
       audience: "YouTube Shorts creators 20-35",
       format: "Story → Evidence → Application → CTA",
-      durationSec: 52,
-      outline: "1) Hook with surprising stat, 2) Explain the science, 3) Show real example, 4) Challenge viewer",
+      duration: 52,
+      structure: [
+        "Hook with surprising stat",
+        "Explain the science",
+        "Show real example",
+        "Challenge viewer",
+      ],
       cta: "Comment your biggest hook struggle below.",
       platform: "youtube_shorts",
       viralScore: 76,
@@ -80,8 +90,13 @@ const mockContentIdeas: GeneratedContentIdeas = {
       angle: "Personal transformation story with replicable steps",
       audience: "Instagram Reels creators, growth-focused",
       format: "Before → Crisis → Solution → Results",
-      durationSec: 60,
-      outline: "1) Before state hook, 2) The crisis moment, 3) The pivot, 4) Before/after data",
+      duration: 60,
+      structure: [
+        "Before state hook",
+        "The crisis moment",
+        "The pivot",
+        "Before/after data",
+      ],
       cta: "Which tactic are you doing wrong? Drop a comment.",
       platform: "instagram_reels",
       viralScore: 92,

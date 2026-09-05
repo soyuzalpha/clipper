@@ -64,15 +64,22 @@ Use provider abstraction.
 
 AIProvider
 
-Implementations may include:
+Current implementations:
 
-- OpenAI
-- Anthropic
-- Gemini
-- Custom providers
-- MockProvider
+- mock (MockAIProvider)
+- hemattoken (HematTokenProvider)
+
+External calls go through the HematToken gateway — the app never connects to Anthropic/OpenAI/Gemini directly. HematTokenProvider speaks the gateway's OpenAI-compatible Chat Completions API through the Vercel AI SDK; mock mode needs no keys so the app is fully usable in dev, tests, CI, and demos.
+
+Flow:
+
+App → AI Service → AI Router → AIProvider → (gateway → model)
+
+The AI Router names a task (campaign_analysis, content_ideas, …), resolves provider + model, and records a request log per call.
 
 The application should depend on AIProvider rather than directly on a vendor SDK.
+
+See docs/AI_INTEGRATION.md for the full implementation record.
 
 ---
 

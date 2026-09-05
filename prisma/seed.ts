@@ -431,26 +431,31 @@ async function main() {
       output: JSON.stringify({
         summary: "High-value tech launch campaign with strong reward ceiling. Audience overlap with creator's existing channel is strong.",
         requirements: [
-          { kind: "must_include", text: "Show device within 3 seconds" },
-          { kind: "must_mention", text: "@novatech" },
+          "Show the device within the first 3 seconds",
+          "Mention @novatech in the video",
+        ],
+        restrictions: [
+          "No unboxing-before-reveal of unreleased accessories",
+          "No competitor comparisons on camera",
         ],
         risks: [
           "Tight 14-day deadline leaves little room for re-edits",
           "Trademark on 'NovaPhone' — avoid phonetic similarity in hook",
         ],
-        strategy: {
-          angle: "durability + daily-driver",
-          audience: "tech enthusiasts, 18-35",
-          tone: "curious, slightly skeptical",
-          hook_direction: "stress-test / prove-it",
-          duration: 60,
-          cta: "pre-order urgency",
-          structure: "hook → setup → proof → verdict → cta",
-        },
-        opportunityScore: {
-          total: 87,
-          breakdown: { reward: 90, deadline: 65, competition: 70, content_fit: 95, viral_potential: 85, creator_fit: 92 },
-        },
+        targetAudience: [
+          "tech enthusiasts, 18-35, daily-driver upgraders",
+          "creator's existing audience of phone-comparison fans",
+        ],
+        contentAngles: [
+          "durability + daily-driver stress test",
+          "night-camera vs old phone side-by-side",
+        ],
+        strategy: [
+          "Open on the stress test, not the spec sheet",
+          "Curious, slightly skeptical tone — prove it on camera",
+          "60-second runtime; verdict + pre-order CTA at the end",
+        ],
+        opportunityScore: 87,
       }),
       provider: "mock",
     },

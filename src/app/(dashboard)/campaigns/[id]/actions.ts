@@ -6,6 +6,7 @@ import { requireAuth } from "@/lib/auth";
 import { parseJsonArray } from "@/lib/parse";
 import { analyzeCampaign } from "@/lib/ai/services/campaign-analyzer";
 import { getAIProvider } from "@/lib/ai/provider";
+import { AIError } from "@/lib/ai/errors";
 
 export type CampaignActionResult =
   | { ok: true; provider: string }
@@ -28,29 +29,37 @@ export async function analyzeCampaignAction(campaignId: string): Promise<Campaig
     return { ok: false, error: "Campaign not found." };
   }
 
-  const analysis = await analyzeCampaign({
-    name: campaign.name,
-    brand: campaign.brand,
-    creator: campaign.creator,
-    description: campaign.description,
-    objective: campaign.objective,
-    reward: campaign.reward,
-    deadline: campaign.deadline,
-    format: campaign.format,
-    audience: campaign.audience,
-    minDurationSec: campaign.minDurationSec,
-    maxDurationSec: campaign.maxDurationSec,
-    requiredCta: campaign.requiredCta,
-    guidelines: campaign.guidelines,
-    prohibitedTopics: campaign.prohibitedTopics,
-    submissionProcedure: campaign.submissionProcedure,
-    rewardConditions: campaign.rewardConditions,
-    sourceMaterial: campaign.sourceMaterial,
-    platforms: parseJsonArray(campaign.platforms),
-    hashtags: parseJsonArray(campaign.hashtags),
-    mentions: parseJsonArray(campaign.mentions),
-    requirements: campaign.requirements.map((r) => ({ kind: r.kind, text: r.text })),
-  });
+  let analysis: Awaited<ReturnType<typeof analyzeCampaign>>;
+  try {
+    analysis = await analyzeCampaign({
+      name: campaign.name,
+      brand: campaign.brand,
+      creator: campaign.creator,
+      description: campaign.description,
+      objective: campaign.objective,
+      reward: campaign.reward,
+      deadline: campaign.deadline,
+      format: campaign.format,
+      audience: campaign.audience,
+      minDurationSec: campaign.minDurationSec,
+      maxDurationSec: campaign.maxDurationSec,
+      requiredCta: campaign.requiredCta,
+      guidelines: campaign.guidelines,
+      prohibitedTopics: campaign.prohibitedTopics,
+      submissionProcedure: campaign.submissionProcedure,
+      rewardConditions: campaign.rewardConditions,
+      sourceMaterial: campaign.sourceMaterial,
+      platforms: parseJsonArray(campaign.platforms),
+      hashtags: parseJsonArray(campaign.hashtags),
+      mentions: parseJsonArray(campaign.mentions),
+      requirements: campaign.requirements.map((r) => ({ kind: r.kind, text: r.text })),
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof AIError ? error.safeMessage : "Analysis failed unexpectedly.",
+    };
+  }
 
   const provider = getAIProvider().name;
 
@@ -68,7 +77,7 @@ export async function analyzeCampaignAction(campaignId: string): Promise<Campaig
     }),
     prisma.campaign.update({
       where: { id: campaign.id },
-      data: { opportunityScore: analysis.opportunityScore.total },
+      data: { opportunityScore: analysis.opportunityScore },
     }),
   ]);
 

@@ -17,6 +17,24 @@ function daysLeft(deadline: Date): number {
   return Math.ceil((deadline.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
 }
 
+/** One labelled bullet list inside the AI analysis card. */
+function AnalysisSection({ label, items }: { label: string; items: string[] }) {
+  if (items.length === 0) return null;
+  return (
+    <div className="border-t border-border/60 pt-2">
+      <h4 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</h4>
+      <ul className="mt-1.5 space-y-1">
+        {items.map((item) => (
+          <li key={item} className="flex items-start gap-2 text-sm text-foreground">
+            <span className="mt-1.5 size-1 shrink-0 rounded-full bg-muted-foreground" aria-hidden />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export default async function CampaignPage({ params }: Props) {
   const { id } = await params;
 
@@ -44,9 +62,6 @@ export default async function CampaignPage({ params }: Props) {
     );
     if (parsed.success) analysis = parsed.data;
   }
-  const scoreFactors = analysis
-    ? Object.entries(analysis.opportunityScore.breakdown)
-    : [];
 
   return (
     <div className="py-6">
@@ -206,28 +221,16 @@ export default async function CampaignPage({ params }: Props) {
               {analysis ? (
                 <>
                   <div className="flex items-baseline justify-between">
-                    <span className="text-2xl font-semibold">{Math.round(analysis.opportunityScore.total)}/100</span>
+                    <span className="text-2xl font-semibold">{Math.round(analysis.opportunityScore)}/100</span>
                     <span className="text-xs text-muted-foreground">opportunity</span>
                   </div>
                   <p className="text-sm text-muted-foreground">{analysis.summary}</p>
-                  {scoreFactors.length > 0 ? (
-                    <dl className="space-y-1 border-t border-border/60 pt-3">
-                      {scoreFactors.map(([key, value]) => (
-                        <div key={key} className="flex items-center justify-between gap-3 text-xs">
-                          <dt className="text-muted-foreground">{key.replace(/([A-Z])/g, " $1").toLowerCase()}</dt>
-                          <dd className="flex w-24 items-center gap-2">
-                            <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
-                              <div
-                                className="h-full rounded-full bg-foreground/70"
-                                style={{ width: `${value}%` }}
-                              />
-                            </div>
-                            <span className="w-6 text-right tabular-nums text-foreground">{Math.round(value)}</span>
-                          </dd>
-                        </div>
-                      ))}
-                    </dl>
-                  ) : null}
+                  <AnalysisSection label="Target audience" items={analysis.targetAudience} />
+                  <AnalysisSection label="Content angles" items={analysis.contentAngles} />
+                  <AnalysisSection label="Requirements" items={analysis.requirements} />
+                  <AnalysisSection label="Restrictions" items={analysis.restrictions} />
+                  <AnalysisSection label="Risks" items={analysis.risks} />
+                  <AnalysisSection label="Strategy" items={analysis.strategy} />
                 </>
               ) : (
                 <p className="text-sm text-muted-foreground">
