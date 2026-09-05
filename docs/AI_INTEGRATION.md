@@ -33,7 +33,7 @@ Environment (server-side only — never exposed to the client):
 `src/lib/ai/provider.ts` defines the `AIProvider` contract: `name` + `generate<T>({ schema, schemaName, system, prompt, model? }) → Promise<AIResponse<T>>` where `AIResponse` carries `data` plus optional token `usage`.
 
 - `mock` (`providers/mock.ts`) returns deterministic, schema-valid fixtures. No keys, no network — keeps the app fully usable in dev, tests, CI, and demos.
-- `hemattoken` (`providers/hemat.ts`) talks to the gateway through the Vercel AI SDK (`generateObject` over `createOpenAI({ baseURL, apiKey }).chat(model)`), which sends OpenAI-compatible structured outputs (`response_format: { type: "json_schema", strict: true }`). Constructor overrides exist for tests; production settings come from env.
+- `hemattoken` (`providers/hemat.ts`) talks to the gateway through the Vercel AI SDK (`generateText` over `createOpenAI({ baseURL, apiKey }).chat(model)`) — a plain OpenAI-compatible Chat Completions call. The HematToken gateway does **not** honor `response_format` (structured outputs), so the SDK's `generateObject` cannot be used: the upstream model emits a prose reasoning preamble and never returns strict JSON. Instead `generateText` returns the raw completion, `extractJSONObject` recovers the first balanced `{…}` object from the reply (tolerating the preamble), and the result is validated against the task's Zod schema at the provider boundary — structured output is guaranteed by the parse, not by the transport. Constructor overrides exist for tests; production settings come from env.
 
 Provider selection lives in `provider.ts` (`getAIProvider()`). Nothing above it imports the gateway SDK — swap provider by env var, not code.
 
@@ -92,4 +92,4 @@ Run all unit tests with `npm test` (Node's test runner over `tsx`). No real gate
 ## Status
 
 - Implemented: config, providers, router, error mapping, structured schemas, prompts/context, request logging, health check, mock mode.
-- The gateway `response_format` JSON-mode support varies by upstream model; `hemat.ts` carries a `ponytail:` note for adding a `mode: "json"` retry if a backend rejects strict schema output.
+- Structured output against the gateway is handled by preamble-tolerant JSON extraction (`extractJSONObject` in `hemat.ts`), not by `response_format` — the gateway strips JSON-mode requests. If an upstream model ever wraps its JSON in markdown fences or emits multiple objects, extend the extractor rather than reintroducing `generateObject`.

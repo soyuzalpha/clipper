@@ -8,6 +8,7 @@ import {
   FolderOpen,
   Sparkles,
   Settings,
+  BookOpen,
 } from "lucide-react";
 
 export interface NavItem {
@@ -25,6 +26,7 @@ export const mainNav: NavItem[] = [
   { label: "Clip Maker", href: "/clips", icon: Scissors },
   { label: "Content Library", href: "/library", icon: FolderOpen },
   { label: "AI Assistant", href: "/assistant", icon: Sparkles },
+  { label: "Guide", href: "/guide", icon: BookOpen },
 ];
 
 export const secondaryNav: NavItem[] = [

@@ -2,16 +2,18 @@
 
 ## High-Level Flow
 
-Campaign
-→ Campaign Analysis
-→ Content Strategy
-→ Content Ideas
-→ Planning
-→ Production
-→ Clip
-→ Publication
-→ Analytics
-→ AI Optimization
+```mermaid
+flowchart LR
+    Campaign --> Analysis["Campaign Analysis"]
+    Analysis --> Ideas["Content Ideas"]
+    Ideas --> Planning
+    Planning --> Production
+    Production --> Clip
+    Clip --> Publication
+    Publication --> Analytics
+    Analytics --> Optimize["AI Optimization"]
+    Optimize --> Ideas
+```
 
 ---
 
@@ -122,43 +124,19 @@ Each service should have:
 
 # Data Flow
 
-Campaign
-
-↓
-
-CampaignAnalysis
-
-↓
-
-ContentIdeas
-
-↓
-
-ContentPlan
-
-↓
-
-Content
-
-↓
-
-Clip
-
-↓
-
-Publication
-
-↓
-
-AnalyticsSnapshot
-
-↓
-
-AIRecommendation
-
-↓
-
-New Content Ideas
+```mermaid
+flowchart TD
+    Campaign --> Analysis["CampaignAnalysis"]
+    Analysis --> Ideas["ContentIdeas"]
+    Ideas --> Plan["ContentPlan"]
+    Plan --> Content
+    Content --> Clip
+    Clip --> Publication
+    Publication --> Snapshot["AnalyticsSnapshot"]
+    Snapshot --> Rec["AIRecommendation"]
+    Rec --> NewIdeas["New Content Ideas"]
+    NewIdeas --> Ideas
+```
 
 ---
 
