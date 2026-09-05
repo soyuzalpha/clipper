@@ -20,6 +20,9 @@ export async function getAnalyticsData(workspaceId: string) {
   });
 
   const totals = { views: 0, engagements: 0, likes: 0, comments: 0, shares: 0, saves: 0 };
+  // Growth since each publication's previous snapshot (summed). Snapshots are
+  // captured irregularly, so this is "since last check", not a calendar delta.
+  const totalsDelta = { views: 0, engagements: 0 };
   const byPlatform = new Map<string, PlatformRollup>();
   const rows: { pub: (typeof publications)[number]; latest: (typeof publications)[number]["snapshots"][number] | undefined; prev: (typeof publications)[number]["snapshots"][number] | undefined }[] = [];
   let rateable = 0;
@@ -38,6 +41,11 @@ export async function getAnalyticsData(workspaceId: string) {
     totals.comments += latest.comments;
     totals.shares += latest.shares;
     totals.saves += latest.saves;
+    if (prev) {
+      const prevEngagements = prev.likes + prev.comments + prev.shares + prev.saves;
+      totalsDelta.views += latest.views - prev.views;
+      totalsDelta.engagements += engagements - prevEngagements;
+    }
     rateable += 1;
     retentionSum += latest.retention ?? 0;
     completionSum += latest.completionRate ?? 0;
@@ -52,6 +60,7 @@ export async function getAnalyticsData(workspaceId: string) {
   return {
     rows,
     totals,
+    totalsDelta,
     byPlatform,
     avgRetention: rateable ? retentionSum / rateable : 0,
     avgCompletion: rateable ? completionSum / rateable : 0,
